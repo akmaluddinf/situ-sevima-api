@@ -3,6 +3,7 @@ const cron = require('node-cron');
 const fs = require('fs');
 const { createConnection } = require('./db');
 require('dotenv').config()
+const { SHA256 } = require('crypto-js');
 
 const tokenUrl = process.env.SEVIMA_API_GET_TOKEN;
 const clientId = process.env.SEVIMA_CLIENT_ID;
@@ -74,7 +75,13 @@ const fetchDataAndSaveToDB = async () => {
 
         // Menggunakan Promise.all untuk menjalankan operasi penyimpanan secara asinkron
         await Promise.all(dataFromApi.map(async (item) => {
-          const kode = `${item.kodemk}${item.kurikulum}`
+          // const kode = `${item.kodemk}${item.kurikulum}`
+
+          // Menggunakan JSON.stringify untuk mengubah objek menjadi string sebelum di-hash
+          const dataString = JSON.stringify(item);
+
+          // Membuat hash dari dataString menggunakan SHA256
+          const kode = SHA256(dataString).toString();
 
           const checkQuery = `SELECT COUNT(*) as count FROM ${namaTabel} WHERE kode = ?`;
 
@@ -104,9 +111,10 @@ const fetchDataAndSaveToDB = async () => {
                 item.dosenpengampu,
               ]);
             } else {
-              // Data sudah ada di database, maka dilewati
-              const logDuplicateMessage = `${getCurrentTimestamp()} - Data dengan kode ${kode} sudah ada di database. Lewati.`;
-              console.log(logDuplicateMessage);
+              console.log("data sudah ada di database.");
+
+              // const logDuplicateMessage = `${getCurrentTimestamp()} - Data dengan kode ${kode} sudah ada di database. Lewati.`;
+              // console.log(logDuplicateMessage);
 
               // Menulis log ke file untuk data yang duplikat
               // fs.appendFileSync('log_duplicate.txt', logDuplicateMessage + '\n');
@@ -178,7 +186,7 @@ const checkAndRunFetchData = async () => {
     console.error('Error saat mengecek dan menjalankan fetchDataAndSaveToDB:', error.message);
   }
 };
-// checkAndRunFetchData()
+checkAndRunFetchData()
 
 
 // Fungsi untuk menjalankan checkAndRunFetchData setiap satu jam

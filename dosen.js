@@ -3,6 +3,7 @@ const cron = require('node-cron');
 const fs = require('fs');
 const { createConnection } = require('./db');
 require('dotenv').config()
+const { SHA256 } = require('crypto-js');
 
 const tokenUrl = process.env.SEVIMA_API_GET_TOKEN;
 const clientId = process.env.SEVIMA_CLIENT_ID;
@@ -74,24 +75,31 @@ const fetchDataAndSaveToDB = async () => {
 
         // Menggunakan Promise.all untuk menjalankan operasi penyimpanan secara asinkron
         await Promise.all(dataFromApi.map(async (item) => {
-          const nip = item.nip;
+          // const nip = item.nip;
 
-          const checkQuery = `SELECT COUNT(*) as count FROM ${namaTabel} WHERE nip = ?`;
+          // Menggunakan JSON.stringify untuk mengubah objek menjadi string sebelum di-hash
+          const dataString = JSON.stringify(item);
+
+          // Membuat hash dari dataString menggunakan SHA256
+          const kode = SHA256(dataString).toString();
+
+          const checkQuery = `SELECT COUNT(*) as count FROM ${namaTabel} WHERE kode = ?`;
 
           try {
-            const [countResult] = await connection.query(checkQuery, [nip]);
+            const [countResult] = await connection.query(checkQuery, [kode]);
 
             if (countResult[0].count === 0) {
               // Data belum ada di database, maka disimpan
-              const logSuccessMessage = `${getCurrentTimestamp()} - Data dengan nip ${nip} berhasil disimpan ke database.`;
+              const logSuccessMessage = `${getCurrentTimestamp()} - Data dengan kode ${kode} berhasil disimpan ke database.`;
               // console.log(logSuccessMessage);
 
               // Menulis log ke file untuk data yang berhasil disimpan
               fs.appendFileSync('log_success.txt', logSuccessMessage + '\n');
 
               // Disimpan ke dalam database
-              const insertQuery = `INSERT INTO ${namaTabel} (agama, alamat, email, golpangkat, homebase, jabatanfungsional, jabatanstruktural, jeniskelamin, jenispegawai, nama, nidn, nip, nohp, pendidikanterakhir, tanggallahir, tempatlahir) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+              const insertQuery = `INSERT INTO ${namaTabel} (kode, agama, alamat, email, golpangkat, homebase, jabatanfungsional, jabatanstruktural, jeniskelamin, jenispegawai, nama, nidn, nip, nohp, pendidikanterakhir, tanggallahir, tempatlahir) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
               await connection.query(insertQuery, [
+                kode,
                 item.agama,
                 item.alamat,
                 item.email,
@@ -103,7 +111,7 @@ const fetchDataAndSaveToDB = async () => {
                 item.jenispegawai,
                 item.nama,
                 item.nidn,
-                nip,
+                item.nip,
                 item.nohp,
                 item.pendidikanterakhir,
                 item.tanggallahir,
@@ -115,22 +123,21 @@ const fetchDataAndSaveToDB = async () => {
               fs.appendFileSync('log_success_save_per_page.txt', urlEndpointPerPage + '\n');
 
             } else {
-              // Data sudah ada di database, maka dilewati
-              // const logDuplicateMessage = `${getCurrentTimestamp()} - Data dengan nip ${nip} sudah ada di database. Lewati.`;
-              // console.log(logDuplicateMessage);
               console.log("data sudah ada di database.");
+              // const logDuplicateMessage = `${getCurrentTimestamp()} - Data dengan kode ${kode} sudah ada di database. Lewati.`;
+              // console.log(logDuplicateMessage);
 
               // Menulis log ke file untuk data yang duplikat
               // fs.appendFileSync('log_duplicate.txt', logDuplicateMessage + '\n');
             }
           } catch (error) {
-            console.error('Error saat mengecek nip di database:', error.message);
+            console.error('Error saat mengecek kode di database:', error.message);
           }
         }));
 
-        // const urlEndpointPerPage = `${getCurrentTimestamp()} - url endpoint: ${dynamicApiUrl} => berhasil disimpan di database.`;
-        // console.log(urlEndpointPerPage);
-        // fs.appendFileSync('log_success_save_per_page.txt', urlEndpointPerPage + '\n');
+        const urlEndpointPerPage = `${getCurrentTimestamp()} - url endpoint: ${dynamicApiUrl} => berhasil disimpan di database.`;
+        console.log(urlEndpointPerPage);
+        fs.appendFileSync('log_success_save_per_page.txt', urlEndpointPerPage + '\n');
 
       } catch (error) {
         console.error(`Error saat mengambil data dari page ${currentPage}:`, error.message);
@@ -191,7 +198,7 @@ const checkAndRunFetchData = async () => {
     console.error('Error saat mengecek dan menjalankan fetchDataAndSaveToDB:', error.message);
   }
 };
-// checkAndRunFetchData()
+checkAndRunFetchData()
 
 
 // Fungsi untuk menjalankan checkAndRunFetchData setiap satu jam

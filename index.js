@@ -2,7 +2,7 @@ const dosen = require('./dosen');
 const mahasiswa = require('./mahasiswa');
 const matakuliah = require('./matakuliah');
 const kurikulum = require('./kurikulum');
-const akmmahasiswa = require('./akmmahasiswa');
+const akmmahasiswa_idperiode = require('./akmmahasiswa_idperiode');
 
 
 async function jalankanTugasAsync() {
@@ -20,7 +20,7 @@ async function jalankanTugasAsync() {
     await kurikulum.checkAndRunFetchData();
 
     console.log('Processing data akm...');
-    await akmmahasiswa.checkStatusDatabase();
+    await akmmahasiswa_idperiode.checkStatusDatabase();
 
     console.log('Semua tugas selesai.');
 
