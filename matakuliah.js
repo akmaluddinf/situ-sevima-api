@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cron = require('node-cron');
 const fs = require('fs');
-const { createConnection } = require('./db');
+const { createPoolConnection } = require('./db');
 require('dotenv').config()
 const { SHA256 } = require('crypto-js');
 
@@ -44,7 +44,7 @@ const fetchToken = async () => {
 
 const fetchDataAndSaveToDB = async () => {
   try {
-    const connection = await createConnection();
+    const connection = await createPoolConnection();
 
     const token = await fetchToken();
 
@@ -145,7 +145,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const checkAndRunFetchData = async () => {
   try {
-    const connection = await createConnection();
+    const connection = await createPoolConnection();
 
     while (true) {
       // Membaca data dari tabel mst_mahasiswa
@@ -186,15 +186,22 @@ const checkAndRunFetchData = async () => {
     console.error('Error saat mengecek dan menjalankan fetchDataAndSaveToDB:', error.message);
   }
 };
-checkAndRunFetchData()
+// checkAndRunFetchData()
 
 
-// Fungsi untuk menjalankan checkAndRunFetchData setiap satu jam
-// cron.schedule('0 * * * *', async () => {
-//   console.log('Checking total data and run fetch data...');
-//   await checkAndRunFetchData();
-// });
+// Fungsi untuk menjalankan fetchDataAndSaveToDB setiap 6 jam
+cron.schedule('0 */6 * * *', async () => {
+  const messageRunCron = `${getCurrentTimestamp()} - Running cron... Fetching data from api ${namaApi} and save to table ${namaTabel}...`
+  console.log(messageRunCron);
+  fs.appendFileSync('log_running_cron.txt', messageRunCron + '\n');
+  await fetchDataAndSaveToDB();
+  
+  const messageFinishedCron = `${getCurrentTimestamp()} - Running cron Finished... for api ${namaApi}`
+  console.log(messageFinishedCron);
+  fs.appendFileSync('log_running_cron.txt', messageFinishedCron + '\n');
+});
 
 module.exports = {
+  fetchDataAndSaveToDB,
   checkAndRunFetchData,
 };

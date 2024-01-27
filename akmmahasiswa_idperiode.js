@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cron = require('node-cron');
 const fs = require('fs');
-const { createConnection } = require('./db');
+const { createPoolConnection } = require('./db');
 require('dotenv').config()
 const { SHA256 } = require('crypto-js');
 
@@ -13,6 +13,7 @@ const apiUrl = `${apiBaseUrl}live/akmmahasiswa`;
 const namaApi = apiUrl.split('/').pop();
 const namaTabel = "trn_akmmahasiswa"
 const idPeriode = 20231;
+const limitFetchApi = 43000
 
 const getCurrentTimestamp = () => {
   const now = new Date();
@@ -45,12 +46,12 @@ const fetchToken = async () => {
 
 const fetchDataAndSaveToDB = async () => {
   try {
-    const connection = await createConnection();
+    const connection = await createPoolConnection();
 
     const token = await fetchToken();
 
     // Mendapatkan total page
-    const totalPageResponse = await axios.get(`${apiUrl}?showpage=1&page=1&limit=43000&idperiode=${idPeriode}`, {
+    const totalPageResponse = await axios.get(`${apiUrl}?showpage=1&page=1&limit=${limitFetchApi}&idperiode=${idPeriode}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -61,7 +62,7 @@ const fetchDataAndSaveToDB = async () => {
     // console.log("Total Page:", totalPage);
 
     for (let currentPage = 1; currentPage <= totalPage; currentPage++) {
-      const dynamicApiUrl = `${apiUrl}?showpage=1&page=${currentPage}&limit=43000&idperiode=${idPeriode}`;
+      const dynamicApiUrl = `${apiUrl}?showpage=1&page=${currentPage}&limit=${limitFetchApi}&idperiode=${idPeriode}`;
 
       try {
         // Mendapatkan data dari API per halaman
@@ -155,7 +156,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const checkAndRunFetchData = async () => {
   try {
-    const connection = await createConnection();
+    const connection = await createPoolConnection();
 
     while (true) {
       // Membaca data dari tabel trn_akmmahasiswa
@@ -202,7 +203,7 @@ const checkAndRunFetchData = async () => {
 
 const checkStatusDatabase = async () => {
   try {
-    const connection = await createConnection();
+    const connection = await createPoolConnection();
 
     //membaca data dari tabel prc_periode
     const responseDatabase = await connection.execute('SELECT * FROM prc_periode WHERE idperiode = 20231');
@@ -223,15 +224,23 @@ const checkStatusDatabase = async () => {
     console.error('Error saat mengecek dan memproses data', error.message);
   }
 };
-checkStatusDatabase()
+// checkStatusDatabase()
 
 
-// Fungsi untuk menjalankan checkStatusDatabase setiap satu jam
-// cron.schedule('0 * * * *', async () => {
-//   console.log('Checking total data and run fetch data...');
-//   await checkStatusDatabase();
-// });
+// Fungsi untuk menjalankan fetchDataAndSaveToDB setiap 6 jam
+cron.schedule('0 */6 * * *', async () => {
+  const messageRunCron = `${getCurrentTimestamp()} - Running cron... Fetching data from api ${namaApi} and save to table ${namaTabel}...`
+  console.log(messageRunCron);
+  fs.appendFileSync('log_running_cron.txt', messageRunCron + '\n');
+  await fetchDataAndSaveToDB();
+  
+  const messageFinishedCron = `${getCurrentTimestamp()} - Running cron Finished... for api ${namaApi}`
+  console.log(messageFinishedCron);
+  fs.appendFileSync('log_running_cron.txt', messageFinishedCron + '\n');
+});
 
 module.exports = {
+  fetchDataAndSaveToDB,
+  checkAndRunFetchData,
   checkStatusDatabase,
 };

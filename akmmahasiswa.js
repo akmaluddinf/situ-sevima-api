@@ -9,9 +9,10 @@ const tokenUrl = process.env.SEVIMA_API_GET_TOKEN;
 const clientId = process.env.SEVIMA_CLIENT_ID;
 const clientSecret = process.env.SEVIMA_CLIENT_SECRET;
 const apiBaseUrl = process.env.SEVIMA_API_BASE_URL;
-const apiUrl = `${apiBaseUrl}live/biodatamhs`;
+const apiUrl = `${apiBaseUrl}live/akmmahasiswa`;
 const namaApi = apiUrl.split('/').pop();
-const namaTabel = "mst_mahasiswa"
+const namaTabel = "trn_akmmahasiswa"
+const limitFetchApi = 43000
 
 const getCurrentTimestamp = () => {
   const now = new Date();
@@ -49,7 +50,7 @@ const fetchDataAndSaveToDB = async () => {
     const token = await fetchToken();
 
     // Mendapatkan total page
-    const totalPageResponse = await axios.get(`${apiUrl}?showpage=1&page=1&limit=43000`, {
+    const totalPageResponse = await axios.get(`${apiUrl}?showpage=1&page=1&limit=${limitFetchApi}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -60,7 +61,7 @@ const fetchDataAndSaveToDB = async () => {
     // console.log("Total Page:", totalPage);
 
     for (let currentPage = 1; currentPage <= totalPage; currentPage++) {
-      const dynamicApiUrl = `${apiUrl}?showpage=1&page=${currentPage}&limit=43000`;
+      const dynamicApiUrl = `${apiUrl}?showpage=1&page=${currentPage}&limit=${limitFetchApi}`;
 
       try {
         // Mendapatkan data dari API per halaman
@@ -75,7 +76,7 @@ const fetchDataAndSaveToDB = async () => {
 
         // Menggunakan Promise.all untuk menjalankan operasi penyimpanan secara asinkron
         await Promise.all(dataFromApi.map(async (item) => {
-          // const kode = `${item.nim}${item.konsentrasi}`
+          // const nim = item.nim;
 
           // Menggunakan JSON.stringify untuk mengubah objek menjadi string sebelum di-hash
           const dataString = JSON.stringify(item);
@@ -91,35 +92,32 @@ const fetchDataAndSaveToDB = async () => {
             if (countResult[0].count === 0) {
               // Data belum ada di database, maka disimpan
               const logSuccessMessage = `${getCurrentTimestamp()} - Data dengan kode ${kode} berhasil disimpan ke database.`;
-              // console.log(logSuccessMessage);
+              console.log(logSuccessMessage);
 
               // Menulis log ke file untuk data yang berhasil disimpan
               fs.appendFileSync('log_success.txt', logSuccessMessage + '\n');
 
               // Disimpan ke dalam database
-              const insertQuery = `INSERT INTO ${namaTabel} (kode, agama, alamat, email, emailkampus, gelombang, jalurpendaftaran, jeniskelamin, kelasperkuliahan, konsentrasi, nama, namaibu, nik, nim, nohp, periodemasuk, programstudi, sistemkuliah, statusmahasiswa, tanggallahir, tempatlahir) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+              const insertQuery = `INSERT INTO ${namaTabel} (kode, nim, nama, idperiode, statusmhs, nip, dosenpa, ips, ipk, skssemester, skstotal, ipklulus, skslulus, batassks, skstempuh, semmhs, tglsk, nosk) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
               await connection.query(insertQuery, [
                 kode,
-                item.agama,
-                item.alamat,
-                item.email,
-                item.emailkampus,
-                item.gelombang,
-                item.jalurpendaftaran,
-                item.jeniskelamin,
-                item.kelasperkuliahan,
-                item.konsentrasi,
-                item.nama,
-                item.namaibu,
-                item.nik,
                 item.nim,
-                item.nohp,
-                item.periodemasuk,
-                item.programstudi,
-                item.sistemkuliah,
-                item.statusmahasiswa,
-                item.tanggallahir,
-                item.tempatlahir,
+                item.nama,
+                item.idperiode,
+                item.statusmhs,
+                item.nip,
+                item.dosenpa,
+                item.ips,
+                item.ipk,
+                item.skssemester,
+                item.skstotal,
+                item.ipklulus,
+                item.skslulus,
+                item.batassks,
+                item.skstempuh,
+                item.semmhs,
+                item.tglsk,
+                item.nosk,
               ]);
 
             } else {
@@ -160,7 +158,7 @@ const checkAndRunFetchData = async () => {
     const connection = await createPoolConnection();
 
     while (true) {
-      // Membaca data dari tabel mst_mahasiswa
+      // Membaca data dari tabel trn_akmmahasiswa
       const [rows] = await connection.execute(`SELECT count(*) FROM ${namaTabel}`);
       const totalDataDatabase = rows[0]['count(*)'];
       console.log(`total data di tabel ${namaTabel}:`, totalDataDatabase);
@@ -177,7 +175,7 @@ const checkAndRunFetchData = async () => {
       });
 
       const totalDataApi = totalDataApiResponse.data.count;
-      console.log(`total data di api ${namaApi}:`, totalDataApi);
+      console.log(`total data di api ${namaApi}`, totalDataApi);
       fs.appendFileSync('log_total_data.txt', `${getCurrentTimestamp()} - total data di api ${namaApi}: ${totalDataApi}` + '\n');
 
       // Cek total data dan jalankan proses migrasi jika perlu
@@ -199,7 +197,6 @@ const checkAndRunFetchData = async () => {
   }
 };
 // checkAndRunFetchData()
-
 
 // Fungsi untuk menjalankan fetchDataAndSaveToDB setiap 6 jam
 cron.schedule('0 */6 * * *', async () => {
