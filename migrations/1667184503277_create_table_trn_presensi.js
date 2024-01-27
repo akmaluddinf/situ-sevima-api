@@ -1,0 +1,4 @@
+module.exports = {
+    "up": "CREATE TABLE trn_presensi (`kode` VARCHAR(255) NOT NULL, `periodeakademik` VARCHAR(255) NOT NULL, `programstudi` VARCHAR(255) NOT NULL, `tahunkurikulum` VARCHAR(255) NOT NULL, `kodemk` VARCHAR(255) NOT NULL, `matakuliah` VARCHAR(255) NULL, `kelas` VARCHAR(255) NULL, `sistemkuliah` VARCHAR(255) NULL, `kelasmahasiswa` VARCHAR(255) NULL, `pertemuanke` INT NOT NULL, `tanggal` DATE NULL, `hari` VARCHAR(255) NULL, `waktumengajar` VARCHAR(255) NULL, `jenisjadwal` VARCHAR(255) NULL, `statusperkuliahan` VARCHAR(255) NULL, `presensi` VARCHAR(255) NULL, `nama` VARCHAR(255) NULL, `nim` VARCHAR(255) NOT NULL, PRIMARY KEY (`kode`))",
+    "down": "DROP TABLE trn_presensi"
+}

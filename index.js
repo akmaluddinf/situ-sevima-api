@@ -24,6 +24,9 @@ async function jalankanTugasAsync() {
     // console.log('Processing data akm...');
     // await akmmahasiswa.fetchDataAndSaveToDB();
 
+    // console.log('Processing data kelas kuliah...');
+    // await kelaskuliah.fetchDataAndSaveToDB();
+
     // console.log('Processing data akm per id periode...');
     // await akmmahasiswa_idperiode.fetchDataAndSaveToDB();
 

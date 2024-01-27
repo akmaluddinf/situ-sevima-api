@@ -1,0 +1,9 @@
+module.exports = {
+    "up": "CREATE TABLE trn_kelaskuliah (`kode` VARCHAR(255) NOT NULL, `periodeakademik` VARCHAR(255) NOT NULL, `programstudi` VARCHAR(255) NOT NULL, `kurikulum` VARCHAR(255) NOT NULL, `kodemk` VARCHAR(255) NOT NULL, `namamk` VARCHAR(255) NULL, `namakelas` VARCHAR(255) NULL, `sistemkuliah` VARCHAR(255) NULL, `namakelasmahasiswa` VARCHAR(255) NULL, `kapasitas` INT NOT NULL, `tanggalmulai` DATE NULL, `tanggalselesai` DATE NULL, `jumlahpertemuan` INT NULL, `mbkm` VARCHAR(255) NULL, `hari` VARCHAR(255) NULL, `jammulai` VARCHAR(255) NULL, `jamselesai` VARCHAR(255) NULL, `jenispertemuan` VARCHAR(255) NULL, `metodepembelajaran` VARCHAR(255) NULL, `namaruang` VARCHAR(255) NULL, `nip` VARCHAR(255) NULL, `namadosen` VARCHAR(255) NULL, `kelasid` VARCHAR(255) NULL, `lastupdate` DATE NULL, PRIMARY KEY (`kode`))",
+    "down": "DROP TABLE trn_kelaskuliah"
+}
+
+// module.exports = {
+//     "up": "CREATE TABLE trn_kelaskuliah (`kode` VARCHAR(255) NOT NULL, `periodeakademik` VARCHAR(255) NOT NULL, `programstudi` VARCHAR(255) NOT NULL, `kurikulum` VARCHAR(255) NOT NULL, `kodemk` VARCHAR(255) NOT NULL, `namamk` VARCHAR(255) NULL, `namakelas` VARCHAR(255) NULL, `sistemkuliah` VARCHAR(255) NULL, `namakelasmahasiswa` VARCHAR(255) NULL, `kapasitas` INT NOT NULL, `tanggalmulai` DATE NULL, `tanggalselesai` DATE NULL, `jumlahpertemuan` INT NULL, `mbkm` VARCHAR(255) NULL, `hari` VARCHAR(255) NULL, `jammulai` VARCHAR(255) NULL, `jamselesai` VARCHAR(255) NULL, `jenispertemuan` VARCHAR(255) NULL, `metodepembelajaran` VARCHAR(255) NULL, `namaruang` VARCHAR(255) NULL, `nip` VARCHAR(255) NULL, `namadosen` VARCHAR(255) NULL, PRIMARY KEY (`kode`))",
+//     "down": "DROP TABLE trn_kelaskuliah"
+// }
