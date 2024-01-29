@@ -9,9 +9,9 @@ const tokenUrl = process.env.SEVIMA_API_GET_TOKEN;
 const clientId = process.env.SEVIMA_CLIENT_ID;
 const clientSecret = process.env.SEVIMA_CLIENT_SECRET;
 const apiBaseUrl = process.env.SEVIMA_API_BASE_URL;
-const apiUrl = `${apiBaseUrl}live/akmmahasiswa`;
+const apiUrl = `${apiBaseUrl}live/kelaskuliah`;
 const namaApi = apiUrl.split('/').pop();
-const namaTabel = "trn_akmmahasiswa"
+const namaTabel = "trn_kelaskuliah"
 const limitFetchApi = 43000
 
 const getCurrentTimestamp = () => {
@@ -98,26 +98,9 @@ const fetchDataAndSaveToDB = async () => {
               fs.appendFileSync('log_success.txt', logSuccessMessage + '\n');
 
               // Disimpan ke dalam database
-              const insertQuery = `INSERT INTO ${namaTabel} (kode, nim, nama, idperiode, statusmhs, nip, dosenpa, ips, ipk, skssemester, skstotal, ipklulus, skslulus, batassks, skstempuh, semmhs, tglsk, nosk) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+              const insertQuery = `INSERT INTO ${namaTabel} (kode, periodeakademik, programstudi, kurikulum, kodemk, namamk, namakelas, sistemkuliah, namakelasmahasiswa, kapasitas, tanggalmulai, tanggalselesai, jumlahpertemuan, mbkm, hari, jammulai, jamselesai, jenispertemuan, metodepembelajaran, namaruang, nip, namadosen, kelasid, lastupdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
               await connection.query(insertQuery, [
-                kode,
-                item.nim,
-                item.nama,
-                item.idperiode,
-                item.statusmhs,
-                item.nip,
-                item.dosenpa,
-                item.ips,
-                item.ipk,
-                item.skssemester,
-                item.skstotal,
-                item.ipklulus,
-                item.skslulus,
-                item.batassks,
-                item.skstempuh,
-                item.semmhs,
-                item.tglsk,
-                item.nosk,
+                kode, item.periodeakademik, item.programstudi, item.kurikulum, item.kodemk, item.namamk, item.namakelas, item.sistemkuliah, item.namakelasmahasiswa, item.kapasitas, item.tanggalmulai, item.tanggalselesai, item.jumlahpertemuan, item.mbkm, item.hari, item.jammulai, item.jamselesai, item.jenispertemuan, item.metodepembelajaran, item.namaruang, item.nip, item.namadosen, item.kelasid, item.lastupdate
               ]);
 
             } else {
@@ -158,7 +141,6 @@ const checkAndRunFetchData = async () => {
     const connection = await createPoolConnection();
 
     while (true) {
-      // Membaca data dari tabel trn_akmmahasiswa
       const [rows] = await connection.execute(`SELECT count(*) FROM ${namaTabel}`);
       const totalDataDatabase = rows[0]['count(*)'];
       console.log(`total data di tabel ${namaTabel}:`, totalDataDatabase);
@@ -196,7 +178,7 @@ const checkAndRunFetchData = async () => {
     console.error('Error saat mengecek dan menjalankan fetchDataAndSaveToDB:', error.message);
   }
 };
-// checkAndRunFetchData()
+checkAndRunFetchData()
 
 // Fungsi untuk menjalankan fetchDataAndSaveToDB setiap 6 jam
 cron.schedule('0 */6 * * *', async () => {

@@ -8,10 +8,10 @@ const { SHA256 } = require('crypto-js');
 const tokenUrl = process.env.SEVIMA_API_GET_TOKEN;
 const clientId = process.env.SEVIMA_CLIENT_ID;
 const clientSecret = process.env.SEVIMA_CLIENT_SECRET;
-const apiBaseUrl = process.env.SEVIMA_API_BASE_URL;
-const apiUrl = `${apiBaseUrl}live/kelaskuliah`;
+const apiBaseUrl = process.env.SEVIMA_API_BASE_URL2;
+const apiUrl = `${apiBaseUrl}live/swithingbank`;
 const namaApi = apiUrl.split('/').pop();
-const namaTabel = "trn_kelaskuliah"
+const namaTabel = "ref_masterbank"
 const limitFetchApi = 43000
 
 const getCurrentTimestamp = () => {
@@ -98,9 +98,9 @@ const fetchDataAndSaveToDB = async () => {
               fs.appendFileSync('log_success.txt', logSuccessMessage + '\n');
 
               // Disimpan ke dalam database
-              const insertQuery = `INSERT INTO ${namaTabel} (kode, periodeakademik, programstudi, kurikulum, kodemk, namamk, namakelas, sistemkuliah, namakelasmahasiswa, kapasitas, tanggalmulai, tanggalselesai, jumlahpertemuan, mbkm, hari, jammulai, jamselesai, jenispertemuan, metodepembelajaran, namaruang, nip, namadosen, kelasid, lastupdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+              const insertQuery = `INSERT INTO ${namaTabel} (kode, idswitchingbank, namaswitchingbank) VALUES (?, ?, ?)`;
               await connection.query(insertQuery, [
-                kode, item.periodeakademik, item.programstudi, item.kurikulum, item.kodemk, item.namamk, item.namakelas, item.sistemkuliah, item.namakelasmahasiswa, item.kapasitas, item.tanggalmulai, item.tanggalselesai, item.jumlahpertemuan, item.mbkm, item.hari, item.jammulai, item.jamselesai, item.jenispertemuan, item.metodepembelajaran, item.namaruang, item.nip, item.namadosen, item.kelasid, item.lastupdate
+                kode, item.idswitchingbank, item.namaswitchingbank
               ]);
 
             } else {
@@ -141,7 +141,6 @@ const checkAndRunFetchData = async () => {
     const connection = await createPoolConnection();
 
     while (true) {
-      // Membaca data dari tabel trn_akmmahasiswa
       const [rows] = await connection.execute(`SELECT count(*) FROM ${namaTabel}`);
       const totalDataDatabase = rows[0]['count(*)'];
       console.log(`total data di tabel ${namaTabel}:`, totalDataDatabase);

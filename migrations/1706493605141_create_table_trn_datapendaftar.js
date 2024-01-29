@@ -1,0 +1,4 @@
+module.exports = {
+  "up": "CREATE TABLE trn_datapendaftar (`kode` VARCHAR(150) NOT NULL, `kodependaftar` VARCHAR(150) NULL, `namapendaftar` VARCHAR(150) NULL, `alamat` VARCHAR(150) NULL, `asalsekolah` VARCHAR(150) NULL, `kota` VARCHAR(150) NULL, `pilihan1` VARCHAR(150) NULL, `pilihan2` VARCHAR(150) NULL, `prodiditerima` VARCHAR(150) NULL, `tmplahir` VARCHAR(150) NULL, `tgllahir` DATE NULL, `tgldaftar` DATETIME NULL, `namaayah` VARCHAR(150) NULL, `tlpayah` VARCHAR(150) NULL, `namaibu` VARCHAR(150) NULL, `tlpibu` VARCHAR(150) NULL, PRIMARY KEY (`kode`))",
+  "down": "DROP TABLE trn_datapendaftar"
+}
