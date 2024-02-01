@@ -207,7 +207,7 @@ const checkStatusDatabase = async () => {
     console.error('Error saat mengecek dan memproses data', error.message);
   }
 };
-// checkStatusDatabase()
+checkStatusDatabase()
 
 
 // Fungsi untuk menjalankan fetchDataAndSaveToDB setiap 6 jam

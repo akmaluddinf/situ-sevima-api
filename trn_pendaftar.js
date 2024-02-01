@@ -274,7 +274,7 @@ const checkAndRunFetchData = async () => {
     console.error('Error saat mengecek dan menjalankan fetchDataAndSaveToDB:', error.message);
   }
 };
-checkAndRunFetchData()
+// checkAndRunFetchData()
 
 // Fungsi untuk menjalankan fetchDataAndSaveToDB setiap 6 jam
 cron.schedule('0 */6 * * *', async () => {

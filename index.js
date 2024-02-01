@@ -2,7 +2,6 @@ const dosen = require('./mst_dosen');
 const mahasiswa = require('./mst_mahasiswa');
 const kurikulum = require('./mst_kurikulum');
 const matakuliah = require('./mst_matakuliah');
-const akmmahasiswa_idperiode = require('./akmmahasiswa_idperiode');
 const akmmahasiswa = require('./trn_akmmahasiswa');
 const jadwalperkuliahan = require('./trn_jadwalperkuliahan');
 const jadwalujian = require('./trn_jadwalujian');
@@ -95,9 +94,6 @@ async function jalankanTugasAsync() {
     // console.log('Processing data: master bank...');
     // await masterbank.fetchDataAndSaveToDB();
 
-    
-    // console.log('Processing data: akm per id periode...');
-    // await akmmahasiswa_idperiode.fetchDataAndSaveToDB();
 
     console.log('Semua tugas selesai.');
 
