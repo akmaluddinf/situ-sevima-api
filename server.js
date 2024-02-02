@@ -32,7 +32,8 @@ const jalurpendaftaran = require('./ref_jalurpendaftaran');
 const sistemkuliah = require('./ref_sistemkuliah');
 const masterbank = require('./ref_masterbank');
 
-app.get('/runModule/:moduleName', async (req, res) => {
+//endpoint run module
+app.post('/runModule/:moduleName', async (req, res) => {
   const moduleName = req.params.moduleName;
 
   try {
@@ -44,19 +45,59 @@ app.get('/runModule/:moduleName', async (req, res) => {
       await kurikulum.fetchDataAndSaveToDB();
     } else if (moduleName === 'matakuliah') {
       await matakuliah.fetchDataAndSaveToDB();
-    } else {
+    } else if (moduleName === 'akmmahasiswa') {
+      await akmmahasiswa.fetchDataAndSaveToDB();
+    } else if (moduleName === 'jadwalperkuliahan') {
+      await jadwalperkuliahan.fetchDataAndSaveToDB();
+    } else if (moduleName === 'jadwalujian') {
+      await jadwalujian.fetchDataAndSaveToDB();
+    } else if (moduleName === 'kelaskuliah') {
+      await kelaskuliah.fetchDataAndSaveToDB();
+    } else if (moduleName === 'krsmahasiswa') {
+      await krsmahasiswa.fetchDataAndSaveToDB();
+    } else if (moduleName === 'datapendaftar') {
+      await datapendaftar.fetchDataAndSaveToDB();
+    } else if (moduleName === 'pesertaditerima') {
+      await pesertaditerima.fetchDataAndSaveToDB();
+    } else if (moduleName === 'pesertaregistrasi') {
+      await pesertaregistrasi.fetchDataAndSaveToDB();
+    } else if (moduleName === 'pesertates') {
+      await pesertates.fetchDataAndSaveToDB();
+    } else if (moduleName === 'pesertaujian') {
+      await pesertaujian.fetchDataAndSaveToDB();
+    } else if (moduleName === 'presensi') {
+      await presensi.fetchDataAndSaveToDB();
+    } else if (moduleName === 'rekappendaftar') {
+      await rekappendaftar.fetchDataAndSaveToDB();
+    } else if (moduleName === 'pendaftar') {
+      await pendaftar.fetchDataAndSaveToDB();
+    } else if (moduleName === 'dataperiode') {
+      await dataperiode.fetchDataAndSaveToDB();
+    } else if (moduleName === 'periodedaftar') {
+      await periodedaftar.fetchDataAndSaveToDB();
+    } else if (moduleName === 'gelombang') {
+      await gelombang.fetchDataAndSaveToDB();
+    } else if (moduleName === 'jalurpendaftaran') {
+      await jalurpendaftaran.fetchDataAndSaveToDB();
+    } else if (moduleName === 'sistemkuliah') {
+      await sistemkuliah.fetchDataAndSaveToDB();
+    } else if (moduleName === 'masterbank') {
+      await masterbank.fetchDataAndSaveToDB();
+    }
+    else {
       res.status(400).json({ success: false, message: `Invalid moduleName: ${moduleName}` });
       return;
     }
 
-    res.status(200).json({ success: true, message: `Modul ${moduleName} berhasil dijalankan.` });
+    res.status(200).json({ success: true, message: `Proses migrasi data ${moduleName} selesai.` });
 
   } catch (error) {
     res.status(500).send(`Error executing module ${moduleName}: ${error.message}`);
   }
 });
 
-app.get('/cekTotalData/:moduleName', async (req, res) => {
+//endpoint check total data
+app.post('/cekTotalData/:moduleName', async (req, res) => {
   const moduleName = req.params.moduleName;
 
   try {
@@ -93,7 +134,7 @@ app.get('/cekTotalData/:moduleName', async (req, res) => {
         },
       });
       totalDataApi = totalDataApiResponse.data.count;
-    } else if (moduleName === 'dataperiode' || moduleName === 'periodedaftar' || moduleName === "gelombang" || moduleName === "jalurpendaftaran" || moduleName === "sistemkuliah") {
+    } else if (moduleName === 'periodedaftar' || moduleName === "gelombang" || moduleName === "jalurpendaftaran" || moduleName === "sistemkuliah") {
       // Membaca total data dari database
       const connection = await createPoolConnection();
       const [rows] = await connection.execute(`SELECT count(*) FROM ref_${moduleName}`);
@@ -117,6 +158,21 @@ app.get('/cekTotalData/:moduleName', async (req, res) => {
       // Membaca total data dari API
       const token = await getToken.fetchToken();
       const totalDataApiResponse = await axios.get(`https://unpas.siakadcloud.com/live/biodatamhs?showpage=1&page=1&limit=1`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      totalDataApi = totalDataApiResponse.data.count;
+    } else if (moduleName === "dataperiode") {
+      // Membaca total data dari database
+      const connection = await createPoolConnection();
+      const [rows] = await connection.execute(`SELECT count(*) FROM ref_${moduleName}`);
+      totalDataDatabase = rows[0]['count(*)'];
+      await connection.end();
+      // Membaca total data dari API
+      const token = await getToken.fetchToken();
+      const totalDataApiResponse = await axios.get(`https://unpas.siakadcloud.com/live/${moduleName}?showpage=1&page=1&limit=1`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -150,6 +206,40 @@ app.get('/cekTotalData/:moduleName', async (req, res) => {
     res.status(500).send(`Error executing module ${moduleName}: ${error.message}`);
   }
 });
+
+//endpoint delete data
+app.delete('/deleteData/:moduleName', async (req, res) => {
+  const moduleName = req.params.moduleName;
+
+  try {
+    let tableName;
+
+    // Menentukan nama tabel berdasarkan moduleName
+    if (moduleName === 'dosen' || moduleName === 'mahasiswa' || moduleName === 'kurikulum' || moduleName === 'matakuliah') {
+      tableName = `mst_${moduleName}`;
+    } else if (moduleName === 'dataperiode' || moduleName === 'gelombang' || moduleName === 'jalurpendaftaran' || moduleName === 'periodedaftar' || moduleName === 'sistemkuliah' || moduleName === 'masterbank'){
+      tableName = `ref_${moduleName}`;
+    } else {
+      tableName = `trn_${moduleName}`;
+    }
+
+    // Mengeksekusi kueri DELETE
+    const connection = await createPoolConnection();
+    const [result] = await connection.execute(`DELETE FROM ${tableName}`);
+    await connection.end();
+
+    // Memeriksa apakah ada data yang dihapus
+    if (result.affectedRows > 0) {
+      res.status(200).json({ success: true, message: `Data di tabel ${moduleName} berhasil dihapus.` });
+    } else {
+      res.status(404).json({ success: false, message: `Tidak ada data di tabel ${moduleName}.` });
+    }
+
+  } catch (error) {
+    res.status(500).send(`Error saat menghapus data dari tabel ${moduleName}: ${error.message}`);
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
